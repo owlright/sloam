@@ -1,0 +1,25 @@
+---
+Language:        Cpp
+BasedOnStyle:    WebKit
+IndentWidth:     4
+ColumnLimit:     120
+AlwaysBreakTemplateDeclarations: true
+AllowShortFunctionsOnASingleLine: All # 如果函数体内只有一行语句，直接写成一行
+BreakStringLiterals: true
+AlignOperands: Align  # 多行运算符对齐 或 AlignAfterOperator, DontAlign
+AlignAfterOpenBracket: Align # 参数对齐到开括号的位置
+AllowShortIfStatementsOnASingleLine: true # 如果if 后面没有 {} 且是单语句时，紧贴在同一行
+AlignTrailingComments: true
+NamespaceIndentation: None # 命名空间不缩进
+# 数组对齐
+AlignArrayOfStructures: Left
+
+# 或者使用 Custom 模式进行更精细的控制
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: false
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterNamespace: false
+  AfterStruct: false
