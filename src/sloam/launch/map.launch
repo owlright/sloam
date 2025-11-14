@@ -1,0 +1,7 @@
+<launch>
+
+    <node pkg="sloam" type="scan_registration" name="scan_registration_node" output="screen"/>
+
+    <!-- Node to play a rosbag -->
+    <!-- <node pkg="rosbag" type="play" name="rosbag_play" args="$(find sloam)/bags/nsh_indoor_outdoor_seq_1.bag" output="screen"/> -->
+</launch>
