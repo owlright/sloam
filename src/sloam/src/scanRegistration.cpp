@@ -27,7 +27,7 @@ public:
         laserCloudIn.reset(new pcl::PointCloud<PointType>());
         laserCloudInRing.reset(new pcl::PointCloud<sloam::PointXYZIR>());
         fullCloud.reset(new pcl::PointCloud<PointType>());
-        fullCloud->points.resize(N_SCAN*Horizon_SCAN);
+        fullCloud->points.resize(N_SCAN * Horizon_SCAN);
     }
     ~ScanRegistration() { }
 
@@ -76,10 +76,12 @@ private:
             } else {
                 // z/√(x^2+y^2)
                 verticalAngle = atan2(thisPoint.z, sqrt(thisPoint.x * thisPoint.x + thisPoint.y * thisPoint.y)) * 180 / M_PI;
+                if (verticalAngle + ang_bottom < 0)
+                    continue;
                 rowIdn = (verticalAngle + ang_bottom) / ang_res_y;
+                if (rowIdn >= N_SCAN)
+                    continue;
             }
-            if (rowIdn < 0 || rowIdn >= N_SCAN)
-                continue;
 
             horizonAngle = atan2(thisPoint.x, thisPoint.y) * 180 / M_PI;
 

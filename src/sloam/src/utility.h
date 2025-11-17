@@ -8,7 +8,7 @@ using PointType = pcl::PointXYZI;
 struct PointXYZIR {
     PCL_ADD_POINT4D;
     PCL_ADD_INTENSITY;
-    uint16_t ring;
+    std::uint16_t ring;
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 } EIGEN_ALIGN16;
 
