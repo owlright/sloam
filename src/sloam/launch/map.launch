@@ -1,5 +1,9 @@
 <launch>
-
+    <!-- 发布一个静态TF：map -> base_link -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_base"
+          args="0 0 0 0 0 0 map base_link" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_velodyne"
+            args="0 0 0 0 0 0 map velodyne" />
     <node pkg="sloam" type="scanRegistration" name="scanRegistrationNode" output="screen"/>
 
     <!-- Node to play a rosbag -->
