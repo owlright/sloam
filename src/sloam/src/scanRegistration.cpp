@@ -28,6 +28,7 @@ public:
         laserCloudInRing.reset(new pcl::PointCloud<sloam::PointXYZIR>());
         fullCloud.reset(new pcl::PointCloud<PointType>());
         fullCloud->points.resize(N_SCAN * Horizon_SCAN);
+        pubFullCloud = nh_.advertise<sensor_msgs::PointCloud2>("/fullCloud", 1);
     }
     ~ScanRegistration() { }
 
@@ -105,11 +106,19 @@ private:
             // fullInfoCloud->points[index] = thisPoint;
             // fullInfoCloud->points[index].intensity = range; // the corresponding range of a point is saved as "intensity"
         }
+        sensor_msgs::PointCloud2 laserCloudTemp;
+        pcl::toROSMsg(*fullCloud, laserCloudTemp);
+        laserCloudTemp.header.stamp = ros::Time().fromSec(0);
+        laserCloudTemp.header.frame_id = "base_link";
+        pubFullCloud.publish(laserCloudTemp);
     }
 
 private:
     ros::NodeHandle nh_;
     ros::Subscriber subLaserCloud_;
+
+    ros::Publisher pubFullCloud;
+
     pcl::PointCloud<PointType>::Ptr laserCloudIn;
     pcl::PointCloud<sloam::PointXYZIR>::Ptr laserCloudInRing;
     pcl::PointCloud<PointType>::Ptr fullCloud;
