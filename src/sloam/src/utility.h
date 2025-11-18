@@ -17,12 +17,21 @@ using PointType = pcl::PointXYZI;
 /*
  * A point cloud type that has "ring" channel
  */
+#if PCL_VERSION_COMPARE(<=, 1, 10, 0)
 struct PointXYZIR {
     PCL_ADD_POINT4D;
     PCL_ADD_INTENSITY;
     std::uint16_t ring;
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 } EIGEN_ALIGN16;
+#else
+struct EIGEN_ALIGN16 PointXYZIR {
+    PCL_ADD_POINT4D;
+    PCL_ADD_INTENSITY;
+    std::uint16_t ring;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+};
+#endif
 
 template <typename PointT>
 void removeClosePointCloud(const pcl::PointCloud<PointT>& cloud_in, pcl::PointCloud<PointT>& cloud_out, float thres) {
@@ -56,5 +65,4 @@ void removeClosePointCloud(const pcl::PointCloud<PointT>& cloud_in, pcl::PointCl
 POINT_CLOUD_REGISTER_POINT_STRUCT (sloam::PointXYZIR,
                                    (float, x, x) (float, y, y)
                                    (float, z, z) (float, intensity, intensity)
-                                   (std::uint16_t, ring, ring)
-)
+                                   (std::uint16_t, ring, ring))
