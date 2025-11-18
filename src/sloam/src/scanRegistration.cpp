@@ -40,6 +40,7 @@ private:
         // Remove Nan points
         std::vector<int> indices;
         pcl::removeNaNFromPointCloud(*laserCloudIn, *laserCloudIn, indices);
+        removeClosePointCloud<PointType>(*laserCloudIn, *laserCloudIn, 0.01);
         auto curSeq = laserCloudMsg->header.seq;
         std::string frame_pcd_name = "frame_" + std::to_string(curSeq) + ".pcd";
         if (pcl::io::savePCDFileASCII(frame_pcd_name, *laserCloudIn) == -1) {
