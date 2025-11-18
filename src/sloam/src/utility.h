@@ -1,5 +1,17 @@
 #pragma once
+#include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+
+// 定义调试宏
+#define DEBUG_CHECK_SEQ(seq, min_seq, max_seq)                          \
+    do {                                                                \
+        if ((seq) < (min_seq) || (seq) > (max_seq)) {                   \
+            ROS_WARN_STREAM("Skipping seq " << (seq)                   \
+                             << " (out of range: [" << (min_seq) << ", " << (max_seq) << "])"); \
+            return;                                                     \
+        }                                                               \
+    } while (0)
+
 namespace sloam {
 using PointType = pcl::PointXYZI;
 /*

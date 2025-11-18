@@ -35,10 +35,17 @@ public:
 
 private:
     void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloudMsg) {
+        DEBUG_CHECK_SEQ(laserCloudMsg->header.seq, 1, 10);
         pcl::fromROSMsg(*laserCloudMsg, *laserCloudIn);
         // Remove Nan points
         std::vector<int> indices;
         pcl::removeNaNFromPointCloud(*laserCloudIn, *laserCloudIn, indices);
+        auto curSeq = laserCloudMsg->header.seq;
+        std::string frame_pcd_name = "frame_" + std::to_string(curSeq) + ".pcd";
+        if (pcl::io::savePCDFileASCII(frame_pcd_name, *laserCloudIn) == -1) {
+            std::cerr << "Failed to save point cloud to " << frame_pcd_name << std::endl;
+        }
+
         if (useCloudRing == true) {
             pcl::fromROSMsg(*laserCloudMsg, *laserCloudInRing);
             if (laserCloudInRing->is_dense == false) {
@@ -52,7 +59,10 @@ private:
             laserCloudIn->points[laserCloudIn->points.size() - 1].y,
             laserCloudIn->points[laserCloudIn->points.size() - 1].x) + 2 * M_PI;
         // clang-format on
-        ROS_INFO("orientation start: %.3f, end: %.3f", orientationStart, orientationEnd);
+        ROS_INFO("start_x: %.3f, start_y: %.3f", laserCloudIn->points[0].x, laserCloudIn->points[0].y);
+        ROS_INFO("end_x: %.3f, end_y: %.3f", laserCloudIn->points[laserCloudIn->points.size() - 1].x,
+                 laserCloudIn->points[laserCloudIn->points.size() - 1].y);
+        ROS_INFO("Seq %u orientation start: %.3f, end: %.3f", curSeq, orientationStart, orientationEnd);
         if (orientationEnd - orientationStart > 3 * M_PI) {
             orientationEnd -= 2 * M_PI;
         } else if (orientationEnd - orientationStart < M_PI) {
