@@ -23,3 +23,7 @@ BraceWrapping:
   AfterEnum: false
   AfterNamespace: false
   AfterStruct: false
+
+SortIncludes: false        # 不排序/重排 #include
+IncludeBlocks: Preserve    # 保留原有 #include 分组与空行
+SortUsingDeclarations: false

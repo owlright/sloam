@@ -3,8 +3,8 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-#include <pcl_conversions/pcl_conversions.h>  // fromROSMsg
-#include <pcl/filters/filter.h>  // removeNaNFromPointCloud
+#include <pcl_conversions/pcl_conversions.h> // fromROSMsg
+#include <pcl/filters/filter.h>              // removeNaNFromPointCloud
 
 namespace sloam {
 
@@ -21,9 +21,10 @@ const float sensorMinimumRange = 1.0; // 在这个范围内的点将被舍弃
 
 class ScanRegistration {
 public:
-    ScanRegistration(): nh_("~") {
+    ScanRegistration()
+        : nh_("~") {
         subLaserCloud_ = nh_.subscribe<sensor_msgs::PointCloud2>("/velodyne_points", 100,
-            &ScanRegistration::laserCloudHandler, this);
+                                                                 &ScanRegistration::laserCloudHandler, this);
         laserCloudIn.reset(new pcl::PointCloud<PointType>());
         laserCloudInRing.reset(new pcl::PointCloud<sloam::PointXYZIR>());
         fullCloud.reset(new pcl::PointCloud<PointType>());
@@ -45,10 +46,12 @@ private:
                 ros::shutdown();
             }
         }
+        // clang-format off
         double orientationStart = -atan2(laserCloudIn->points[0].y, laserCloudIn->points[0].x);
         double orientationEnd   = -atan2(
             laserCloudIn->points[laserCloudIn->points.size() - 1].y,
             laserCloudIn->points[laserCloudIn->points.size() - 1].x) + 2 * M_PI;
+        // clang-format on
         ROS_INFO("orientation start: %.3f, end: %.3f", orientationStart, orientationEnd);
         if (orientationEnd - orientationStart > 3 * M_PI) {
             orientationEnd -= 2 * M_PI;
@@ -76,26 +79,22 @@ private:
                 rowIdn = laserCloudInRing->points[i].ring;
             } else {
                 // z/√(x^2+y^2)
-                verticalAngle = atan2(thisPoint.z, sqrt(thisPoint.x * thisPoint.x + thisPoint.y * thisPoint.y)) * 180 / M_PI;
-                if (verticalAngle + ang_bottom < 0)
-                    continue;
+                verticalAngle
+                    = atan2(thisPoint.z, sqrt(thisPoint.x * thisPoint.x + thisPoint.y * thisPoint.y)) * 180 / M_PI;
+                if (verticalAngle + ang_bottom < 0) continue;
                 rowIdn = (verticalAngle + ang_bottom) / ang_res_y;
-                if (rowIdn >= N_SCAN)
-                    continue;
+                if (rowIdn >= N_SCAN) continue;
             }
 
             horizonAngle = atan2(thisPoint.x, thisPoint.y) * 180 / M_PI;
 
             columnIdn = -round((horizonAngle - 90.0) / ang_res_x) + Horizon_SCAN / 2;
-            if (columnIdn >= Horizon_SCAN)
-                columnIdn -= Horizon_SCAN;
+            if (columnIdn >= Horizon_SCAN) columnIdn -= Horizon_SCAN;
 
-            if (columnIdn < 0 || columnIdn >= Horizon_SCAN)
-                continue;
+            if (columnIdn < 0 || columnIdn >= Horizon_SCAN) continue;
 
             range = sqrt(thisPoint.x * thisPoint.x + thisPoint.y * thisPoint.y + thisPoint.z * thisPoint.z);
-            if (range < sensorMinimumRange)
-                continue;
+            if (range < sensorMinimumRange) continue;
 
             // rangeMat.at<float>(rowIdn, columnIdn) = range;
 
@@ -104,7 +103,8 @@ private:
             index = columnIdn + rowIdn * Horizon_SCAN;
             fullCloud->points[index] = thisPoint;
             // fullInfoCloud->points[index] = thisPoint;
-            // fullInfoCloud->points[index].intensity = range; // the corresponding range of a point is saved as "intensity"
+            // fullInfoCloud->points[index].intensity = range; // the corresponding range of a point is saved as
+            // "intensity"
         }
         sensor_msgs::PointCloud2 laserCloudTemp;
         pcl::toROSMsg(*fullCloud, laserCloudTemp);
@@ -126,8 +126,7 @@ private:
 
 } // namespace sloam
 
-int main(int argc, char **argv)
-{
+int main(int argc, char** argv) {
     ros::init(argc, argv, "scanRegistrationNode");
     sloam::ScanRegistration scanRegistration;
     ros::spin();
