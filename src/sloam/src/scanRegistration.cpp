@@ -54,15 +54,13 @@ private:
                 ros::shutdown();
             }
         }
+        int cloudSize = laserCloudIn->points.size();
         // clang-format off
         double orientationStart = -atan2(laserCloudIn->points[0].y, laserCloudIn->points[0].x);
-        double orientationEnd   = -atan2(
-            laserCloudIn->points[laserCloudIn->points.size() - 1].y,
-            laserCloudIn->points[laserCloudIn->points.size() - 1].x) + 2 * M_PI;
+        double orientationEnd   = -atan2(laserCloudIn->points[cloudSize - 1].y, laserCloudIn->points[cloudSize - 1].x) + 2 * M_PI;
         // clang-format on
         ROS_INFO("start_x: %.3f, start_y: %.3f", laserCloudIn->points[0].x, laserCloudIn->points[0].y);
-        ROS_INFO("end_x: %.3f, end_y: %.3f", laserCloudIn->points[laserCloudIn->points.size() - 1].x,
-                 laserCloudIn->points[laserCloudIn->points.size() - 1].y);
+        ROS_INFO("end_x: %.3f, end_y: %.3f", laserCloudIn->points[cloudSize - 1].x, laserCloudIn->points[cloudSize - 1].y);
         ROS_INFO("Seq %u orientation start: %.3f, end: %.3f", curSeq, orientationStart, orientationEnd);
         if (orientationEnd - orientationStart > 3 * M_PI) {
             orientationEnd -= 2 * M_PI;
