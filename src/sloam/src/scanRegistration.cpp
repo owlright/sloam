@@ -6,6 +6,7 @@
 #include <pcl_conversions/pcl_conversions.h> // fromROSMsg
 #include <pcl/filters/filter.h>              // removeNaNFromPointCloud
 
+std::ofstream logFile;
 namespace sloam {
 
 const bool useCloudRing = true;
@@ -30,12 +31,21 @@ public:
         fullCloud.reset(new pcl::PointCloud<PointType>());
         fullCloud->points.resize(N_SCAN * Horizon_SCAN);
         pubFullCloud = nh_.advertise<sensor_msgs::PointCloud2>("/fullCloud", 1);
+        logFile.open("scanRegistrationLog.txt");
+        if (!logFile.is_open()) {
+            ROS_ERROR("Failed to open log file!");
+            ros::shutdown();
+        }
     }
-    ~ScanRegistration() { }
+    ~ScanRegistration() {
+        if (logFile.is_open()) {
+            logFile.close();
+        }
+    }
 
 private:
     void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloudMsg) {
-        DEBUG_CHECK_SEQ(laserCloudMsg->header.seq, 1, 10);
+        DEBUG_CHECK_SEQ(laserCloudMsg->header.seq, 1, 1);
         pcl::fromROSMsg(*laserCloudMsg, *laserCloudIn);
         // Remove Nan points
         std::vector<int> indices;
@@ -68,7 +78,72 @@ private:
             orientationEnd += 2 * M_PI;
         }
         double orientationDiff = orientationEnd - orientationStart;
-        projectPointCloud();
+
+        bool halfPassed = false;
+        int count = cloudSize;
+        PointType point;
+        std::vector<pcl::PointCloud<PointType>> laserCloudScans(N_SCAN);
+        for (int i = 0; i < cloudSize; i++) {
+            point.x = laserCloudIn->points[i].x;
+            point.y = laserCloudIn->points[i].y;
+            point.z = laserCloudIn->points[i].z;
+            float angle = atan(point.z / sqrt(point.x * point.x + point.y * point.y)) * 180 / M_PI;
+            int scanID = 0;
+
+            if (N_SCAN == 16) {
+                scanID = int((angle + 15) / 2 + 0.5);
+                if (scanID > (N_SCAN - 1) || scanID < 0) {
+                    count--;
+                    continue;
+                }
+            } else if (N_SCAN == 32) {
+                scanID = int((angle + 92.0 / 3.0) * 3.0 / 4.0);
+                if (scanID > (N_SCAN - 1) || scanID < 0) {
+                    count--;
+                    continue;
+                }
+            } else if (N_SCAN == 64) {
+                if (angle >= -8.83)
+                    scanID = int((2 - angle) * 3.0 + 0.5);
+                else
+                    scanID = N_SCAN / 2 + int((-8.83 - angle) * 2.0 + 0.5);
+
+                // use [0 50]  > 50 remove outlies
+                if (angle > 2 || angle < -24.33 || scanID > 50 || scanID < 0) {
+                    count--;
+                    continue;
+                }
+            } else {
+                printf("wrong scan number\n");
+                ROS_BREAK();
+            }
+            // printf("angle %f scanID %d \n", angle, scanID);
+
+            float ori = -atan2(point.y, point.x);
+            // logFile << "Point " << i << ": ori = " << ori << std::endl;
+            if (!halfPassed) {
+                if (ori < orientationStart - M_PI / 2) {
+                    ori += 2 * M_PI;
+                } else if (ori > orientationStart + M_PI * 3 / 2) {
+                    ori -= 2 * M_PI;
+                }
+
+                if (ori - orientationStart > M_PI) {
+                    halfPassed = true;
+                }
+            } else {
+                ori += 2 * M_PI;
+                if (ori < orientationEnd - M_PI * 3 / 2) {
+                    ori += 2 * M_PI;
+                } else if (ori > orientationEnd + M_PI / 2) {
+                    ori -= 2 * M_PI;
+                }
+            }
+
+            float relTime = (ori - orientationStart) / (orientationEnd - orientationStart);
+            point.intensity = scanID + 0.1 * relTime;
+            laserCloudScans[scanID].push_back(point);
+        }
     }
 
     void projectPointCloud() {
