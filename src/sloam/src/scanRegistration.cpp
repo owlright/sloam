@@ -1,4 +1,5 @@
 #include "utility.h"
+#include "sloam/directNDTLO.h"
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl/point_cloud.h>
@@ -45,8 +46,10 @@ public:
 
 private:
     void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloudMsg) {
-        DEBUG_CHECK_SEQ(laserCloudMsg->header.seq, 1, 1);
+        DEBUG_CHECK_SEQ(laserCloudMsg->header.seq, 1, 10);
         pcl::fromROSMsg(*laserCloudMsg, *laserCloudIn);
+        SE3 pose;
+        ndt_lo_.AddCloud(laserCloudIn, pose);
         // Remove Nan points
         std::vector<int> indices;
         pcl::removeNaNFromPointCloud(*laserCloudIn, *laserCloudIn, indices);
@@ -206,6 +209,8 @@ private:
     pcl::PointCloud<PointType>::Ptr laserCloudIn;
     pcl::PointCloud<sloam::PointXYZIR>::Ptr laserCloudInRing;
     pcl::PointCloud<PointType>::Ptr fullCloud;
+
+    sloam::DirectNDTLO ndt_lo_;
 };
 
 } // namespace sloam

@@ -122,14 +122,15 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
+  thirdparty/sophus
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/sloam.cpp
-# )
+add_library(sloam
+  src/directNDTLO.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -152,9 +153,15 @@ add_executable(scanRegistration src/scanRegistration.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
+target_link_libraries(sloam
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+)
+
 target_link_libraries(scanRegistration
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
+  sloam
 )
 
 #############

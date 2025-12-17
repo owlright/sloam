@@ -1,7 +1,8 @@
 #pragma once
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-
+#include "sophus/se2.hpp"
+#include "sophus/se3.hpp"
 // 定义调试宏
 #define DEBUG_CHECK_SEQ(seq, min_seq, max_seq)                          \
     do {                                                                \
@@ -14,6 +15,18 @@
 
 namespace sloam {
 using PointType = pcl::PointXYZI;
+using PointCloudType = pcl::PointCloud<PointType>;
+using CloudPtr = pcl::PointCloud<PointType>::Ptr;
+// pose represented as sophus structs
+using SE2 = Sophus::SE2d;
+using SE2f = Sophus::SE2f;
+using SO2 = Sophus::SO2d;
+using SE3 = Sophus::SE3d;
+using SE3f = Sophus::SE3f;
+using SO3 = Sophus::SO3d;
+
+using Quatd = Eigen::Quaterniond;
+using Quatf = Eigen::Quaternionf;
 /*
  * A point cloud type that has "ring" channel
  */
@@ -59,6 +72,13 @@ void removeClosePointCloud(const pcl::PointCloud<PointT>& cloud_in, pcl::PointCl
     cloud_out.is_dense = true;
 }
 
+template <typename S>
+inline SE3 Mat4ToSE3(const Eigen::Matrix<S, 4, 4>& m) {
+    /// 对R做归一化，防止sophus里的检查不过
+    Quatd q(m.template block<3, 3>(0, 0).template cast<double>());
+    q.normalize();
+    return SE3(q, m.template block<3, 1>(0, 3).template cast<double>());
+}
 } // namespace sloam
 
 // 注册必须要在命名空间外面进行
